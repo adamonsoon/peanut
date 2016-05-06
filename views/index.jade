@@ -1,0 +1,64 @@
+extends layout
+
+block content
+  div(class="container")
+    h1(class="main-title")= title
+    p(class="mission-statement") A simplified npm package explorer.
+    div(class="search-input")
+      span(class="placeholder") package:
+      input(type="text", name="search" class="search" autofocus)
+      button(class="submit") Show
+
+      div(class="center-peanut-loader")
+        div(class="peanut-loader")
+
+    div(class="rendering-center")
+      div(class="rendering") Rendering...
+
+    div(class='dependency-container')
+
+  script.
+    $(document).ready(function() {
+
+      var $search = $('.search'),
+          $dependencyContainer = $('.dependency-container'),
+          $loader = $('.center-peanut-loader'),
+          $rendering = $('.rendering');
+
+      $('.submit').on('click', function() {
+        fetchTree();
+      });
+
+      $search.on('keypress', function(e) {
+        if (e.which == 13 && !e.shiftKey) {
+          fetchTree();
+        }
+      });
+
+      function fetchTree() {
+        if(!$search.val()) {
+          return;
+        }
+
+        $dependencyContainer.removeClass('show');
+        $loader.addClass('show');
+
+        $.ajax({
+          url: '/' + $search.val().toLowerCase() + '/json',
+          dataType: 'json',
+          error: function(err) {
+            console.log(err)
+            $loader.removeClass('show');
+          },
+          success: function(data) {
+            $loader.removeClass('show');
+            $rendering.addClass('show');
+            setTimeout(function() {
+              treeRenderer(data.tree);
+              $rendering.removeClass('show');
+            },0);
+          }
+        });
+      }
+
+    });
